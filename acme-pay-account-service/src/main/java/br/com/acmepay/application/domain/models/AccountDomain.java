@@ -27,6 +27,10 @@ public class AccountDomain {
     private LocalDateTime updated_at;
     private String customerDocument;
 
+    private static final double COEF_MIN = 0.1;
+    private static final double COEF_MED = 0.3;
+    private static final double COEF_MAX = 0.5;
+
     public void create(ICreateAccount createAccount, ICheckDocumentCustomer checkDocumentCustomer) {
 
         var doc = DocumentRequest.builder().document(this.customerDocument).build();
@@ -40,28 +44,37 @@ public class AccountDomain {
         createAccount.execute(this);
     }
 
-    public CardVO createCard(ICreateCardCustomer createCardCustomer){
+    public CardVO createCard(ICreateCardCustomer createCardCustomer) {
         BigDecimal salary = createCardCustomer.execute(this.customerDocument);
-        
-        return  CardVO.builder()
+        BigDecimal limit = BigDecimal.ZERO;
+        if (salary.compareTo(new BigDecimal("10000")) == -1) {
+            limit = salary.multiply(BigDecimal.valueOf(COEF_MIN));
+        } else if (salary.compareTo(new BigDecimal("15000")) == -1) {
+            limit = salary.multiply(BigDecimal.valueOf(COEF_MED));
+        }else{
+            limit = salary.multiply(BigDecimal.valueOf(COEF_MAX));
+        }
+
+        return CardVO.builder()
                 .document(customerDocument)
                 .salary(salary)
-                .limit(BigDecimal.ZERO)
+                .limit(limit)
                 .build();
     }
 
-    public void deposit(BigDecimal amount){
+    public void deposit(BigDecimal amount) {
         this.balance.add(amount);
     }
 
     public void withdraw(BigDecimal amount) throws BalanceToWithdrawException {
-        if (this.balance.compareTo(amount) >= 0){
+        if (this.balance.compareTo(amount) >= 0) {
             this.balance.subtract(amount);
-        }else {
+        } else {
             throw new BalanceToWithdrawException("error withdraw");
         }
     }
-    public void transaction(AccountTransaction transaction, ITransactionKafkaCustumer custumer){
+
+    public void transaction(AccountTransaction transaction, ITransactionKafkaCustumer custumer) {
 
 
         var tras = AccountTransaction.builder()
