@@ -5,6 +5,4 @@ import br.com.acmepay.application.domain.models.AccountTransaction;
 
 public interface ITransactionAccountUseCase {
     void transacion(AccountTransaction accountTransaction);
-
-    void createCard(String document);
 }

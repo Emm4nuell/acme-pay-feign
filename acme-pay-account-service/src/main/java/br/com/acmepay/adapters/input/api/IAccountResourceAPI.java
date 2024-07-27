@@ -21,7 +21,7 @@ public interface IAccountResourceAPI {
     void accountTransaction(@RequestBody AccountTransactionRequest transaction);
 
 //    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("create-card")
-    ResponseEntity<CreateCardResponse> createCard(@PathVariable String document);
+    @GetMapping("create-card/{document}")
+    ResponseEntity<CreateCardResponse> createCard(@PathVariable(name = "document") String document);
 
 }
